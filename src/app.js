@@ -3,7 +3,7 @@ const express = require("express");
 const { connectDB } = require("./config/database");
 
 const User = require("./models/user");
-const user = require("./models/user");
+const bcrypt = require("bcrypt");
 
 const app = express();
 
@@ -11,8 +11,9 @@ app.use(express.json());
 
 app.post("/signup", async (req, res) => {
   const data = req.body;
-  const user = new User(data);
+
   try {
+    //validate
     const allowedValues = [
       "firstName",
       "lastName",
@@ -28,6 +29,18 @@ app.post("/signup", async (req, res) => {
     if (!isAllowed || data?.skills?.length > 20) {
       throw new Error("Some fileds are not defined! ");
     }
+
+    //Password Encryption
+
+    const { firstName, lastName, emailId, password } = req.body;
+    const passwordHash = await bcrypt.hash(password, 5);
+
+    const user = new User({
+      firstName,
+      lastName,
+      emailId,
+      password: passwordHash,
+    });
 
     await user.save();
     res.status(201).send("user created successfully");
@@ -100,7 +113,7 @@ app.patch("/user/:userId", async (req, res) => {
   console.log(userId);
 
   try {
-    const allowedUpdates = ["password", "skills", "about", "photoUrl"];
+    const allowedUpdates = ["password", "skills", "about", "age", "photoUrl"];
     const isAllowed = Object.keys(data).every((k) =>
       allowedUpdates.includes(k),
     );

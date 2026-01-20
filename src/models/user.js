@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const validator = require("validator");
 
 const userSchema = new mongoose.Schema(
   {
@@ -19,22 +20,27 @@ const userSchema = new mongoose.Schema(
       required: true,
       lowercase: true,
       trim: true,
-      minLength: 10,
+
+      validate(val) {
+        if (!validator.isEmail(val)) throw new Error("Invalid Email ! ");
+      },
     },
     password: {
       type: String,
       required: true,
-      minLength: 7,
-      maxlength: 20,
+      validate(pass) {
+        if (!validator.isStrongPassword(pass))
+          throw new Error("Enter Strong Password ");
+      },
     },
 
     age: {
       type: Number,
       min: 18,
+      max: 100,
     },
     gender: {
       type: String,
-      required: true,
       lowercase: true,
       validate: {
         validator: function (val) {
@@ -58,6 +64,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       default:
         "https://kidneystoneindia.com/wp-content/uploads/2018/05/dummy-profile-pic-male1-270x270.jpg",
+
+      validate(val) {
+        if (!validator.isURL(val)) throw new Error("Invalid Image Url ");
+      },
     },
   },
 
