@@ -1,0 +1,110 @@
+const express = require("express");
+
+const { connectDB } = require("./config/database");
+
+const User = require("./models/user");
+const user = require("./models/user");
+
+const app = express();
+
+app.use(express.json());
+
+app.post("/signup", async (req, res) => {
+  const user = new User(req.body);
+  try {
+    await user.save();
+    res.status(201).send("user created successfully");
+  } catch (err) {
+    res.status(400).send("Something went wrong. " + err.message);
+  }
+});
+
+app.get("/user", async (req, res) => {
+  try {
+    const user = await User.find({ emailId: req.body.emailId });
+    if (user.length == 0) {
+      res.status(404).send("User not Found");
+    } else {
+      res.status(200).send(user);
+    }
+  } catch (error) {
+    console.log("Server Error");
+    console.error(err);
+    res.status(500).send("Server Error");
+  }
+});
+
+app.get("/user/:id", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+
+    if (!user) return res.status(404).send("User not found");
+
+    res.status(200).json(user);
+  } catch (err) {
+    res.status(400).send("Invalid MongoDB ID");
+  }
+});
+
+app.get("/feed", async (req, res) => {
+  try {
+    const users = await User.find({});
+
+    if (users.length == 0) {
+      res.status(404).send("User not Found");
+    } else {
+      res.status(200).send(users);
+    }
+  } catch (err) {
+    res.status(500).send("Server Error");
+    console.log(err);
+  }
+});
+
+app.delete("/user", async (req, res) => {
+  try {
+    const userId = req.body.userId;
+
+    const user = await User.findByIdAndDelete(userId);
+
+    if (!user) return res.status(404).send("User not found");
+
+    res.send("User Deleted Successfully");
+  } catch (err) {
+    console.error(err);
+    res.status(400).send("Something went wrong");
+  }
+});
+
+app.patch("/user", async (req, res) => {
+  const userId = req.body.userId;
+  const data = req.body;
+
+  try {
+    const user = await User.findByIdAndUpdate(userId, data, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!user) {
+      res.status(404).send("User Not Found");
+    } else {
+      res.status(200).send("user Updated Successfully");
+    }
+  } catch (err) {
+    res.status(500).send("Something went wrong! " + err.message);
+  }
+});
+
+connectDB()
+  .then(() => {
+    console.log("DB Connection succesful");
+  })
+  .catch((err) => {
+    console.error("Connection failed");
+    console.log(err);
+  });
+
+app.listen(3000, () => {
+  console.log("app is listening on port 3000");
+});
