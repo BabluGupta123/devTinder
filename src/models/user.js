@@ -53,6 +53,12 @@ const userSchema = new mongoose.Schema(
       minLength: 20,
       default: "This is Default About",
     },
+
+    photoUrl: {
+      type: String,
+      default:
+        "https://kidneystoneindia.com/wp-content/uploads/2018/05/dummy-profile-pic-male1-270x270.jpg",
+    },
   },
 
   { timestamps: true },

@@ -10,8 +10,25 @@ const app = express();
 app.use(express.json());
 
 app.post("/signup", async (req, res) => {
-  const user = new User(req.body);
+  const data = req.body;
+  const user = new User(data);
   try {
+    const allowedValues = [
+      "firstName",
+      "lastName",
+      "emailId",
+      "password",
+      "age",
+      "gender",
+      "skills",
+      "about",
+      "photoUrl",
+    ];
+    const isAllowed = Object.keys(data).every((k) => allowedValues.includes(k));
+    if (!isAllowed || data?.skills?.length > 20) {
+      throw new Error("Some fileds are not defined! ");
+    }
+
     await user.save();
     res.status(201).send("user created successfully");
   } catch (err) {
@@ -76,11 +93,22 @@ app.delete("/user", async (req, res) => {
   }
 });
 
-app.patch("/user", async (req, res) => {
-  const userId = req.body.userId;
+app.patch("/user/:userId", async (req, res) => {
+  const userId = req.params.userId;
   const data = req.body;
 
+  console.log(userId);
+
   try {
+    const allowedUpdates = ["password", "skills", "about", "photoUrl"];
+    const isAllowed = Object.keys(data).every((k) =>
+      allowedUpdates.includes(k),
+    );
+
+    if (!isAllowed || data?.skills.length > 20) {
+      throw new Error("Updates not Allowed! ");
+    }
+
     const user = await User.findByIdAndUpdate(userId, data, {
       new: true,
       runValidators: true,
