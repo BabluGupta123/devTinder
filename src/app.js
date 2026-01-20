@@ -9,6 +9,22 @@ const app = express();
 
 app.use(express.json());
 
+app.post("/login", async (req, res) => {
+  const { emailId, password } = req.body;
+
+  try {
+    const user = await User.findOne({ emailId });
+    if (!user) {
+      throw new Error("invalid Credentials");
+    }
+    const isValid = await bcrypt.compare(password, user.password);
+    if (!isValid) throw new Error("invalid Credentials");
+    else res.send("Login Successful ! ");
+  } catch (err) {
+    res.status(500).send("Error " + err.message);
+  }
+});
+
 app.post("/signup", async (req, res) => {
   const data = req.body;
 
