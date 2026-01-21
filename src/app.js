@@ -1,13 +1,17 @@
 const express = require("express");
 
 const { connectDB } = require("./config/database");
-
 const User = require("./models/user");
 const bcrypt = require("bcrypt");
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
+
+require("dotenv").config();
 
 const app = express();
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.post("/login", async (req, res) => {
   const { emailId, password } = req.body;
@@ -19,9 +23,36 @@ app.post("/login", async (req, res) => {
     }
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) throw new Error("invalid Credentials");
-    else res.send("Login Successful ! ");
+    else {
+      const token = jwt.sign({ _id: user._id }, process.env.secretKey);
+
+      res.cookie("token", token);
+      res.send("Login Successful ! ");
+    }
   } catch (err) {
     res.status(500).send("Error " + err.message);
+  }
+});
+
+app.get("/profile", async (req, res) => {
+  try {
+    const { token } = await req.cookies;
+
+    if (!token) {
+      res.status(404).send("Please Login! ");
+    }
+
+    const decodedMessage = jwt.verify(token, process.env.secretKey);
+
+    const user = await User.findById(decodedMessage._id);
+
+    if (!user) {
+      res.status(404).send("Invalid Token !");
+    }
+
+    res.status(200).send(user);
+  } catch (err) {
+    res.status(500).send("Something went wrong! " + err.message);
   }
 });
 
@@ -152,6 +183,8 @@ app.patch("/user/:userId", async (req, res) => {
     res.status(500).send("Something went wrong! " + err.message);
   }
 });
+
+app.get("/profile", (req, res) => {});
 
 connectDB()
   .then(() => {
