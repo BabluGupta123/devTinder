@@ -31,18 +31,24 @@ authRouter.post("/login", async (req, res) => {
     const { emailId, password } = req.body;
 
     const user = await User.findOne({ emailId });
-    if (!user) return res.status(400).send("Invalid credentials");
+    if (!user) res.status(400).send("Invalid credentials");
 
     const isValid = await bcrypt.compare(password, user.password);
-    if (!isValid) return res.status(400).send("Invalid credentials");
+    if (!isValid) res.status(400).send("Invalid credentials");
 
-    const token = jwt.sign({ _id: user._id }, process.env.secretKey);
-
+    const token = jwt.sign({ _id: user._id }, process.env.secretKey, {
+      expiresIn: "10d",
+    });
     res.cookie("token", token, { httpOnly: true });
     res.send("Login Successful!");
   } catch (err) {
     res.status(500).send(err.message);
   }
+});
+
+authRouter.post("/logout", (req, res) => {
+  res.clearCookie("token");
+  res.send("Logged out successfully");
 });
 
 module.exports = { authRouter };

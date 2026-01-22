@@ -5,7 +5,7 @@ const { userAuth } = require("../middlewares/auth");
 
 requestRoute.post("/connection", userAuth, async (req, res) => {
   try {
-    const user = req.user;
+    const user = await req.user;
     if (!user) {
       res.status(404).send("Login Please! ");
     }
