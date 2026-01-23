@@ -11,14 +11,16 @@ app.use(cookieParser());
 const { profileRouter } = require("./routes/profile");
 const { authRouter } = require("./routes/auth");
 const { requestRoute } = require("./routes/request");
+const { userRoute } = require("./routes/user");
 
 app.use("/", authRouter);
 app.use("/", profileRouter);
 app.use("/", requestRoute);
+app.use("/", userRoute);
 
 connectDB()
   .then(() => {
-    console.log("DB Connection succesful");
+    console.log("DB Connected successfully!");
   })
   .catch((err) => {
     console.error("Connection failed");
