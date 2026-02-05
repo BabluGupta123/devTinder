@@ -40,7 +40,7 @@ authRouter.post("/login", async (req, res) => {
       expiresIn: "10d",
     });
     res.cookie("token", token, { httpOnly: true });
-    res.send("Login Successful!");
+    res.send(user);
   } catch (err) {
     res.status(500).send(err.message);
   }
